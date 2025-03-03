@@ -1,0 +1,29 @@
+{
+  "name": "trisikad-user-services",
+  "version": "1.0.0",
+  "description": "trisikad user services",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.751.0",
+    "@aws-sdk/credential-provider-node": "^3.750.0",
+    "@aws-sdk/lib-dynamodb": "^3.751.0",
+    "aws-sdk": "^2.1692.0",
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jwt-simple": "^0.5.6",
+    "mongoose": "^8.10.1",
+    "serverless-http": "^3.2.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "twilio": "^5.4.5",
+    "uuid": "^11.1.0"
+  }
+}
