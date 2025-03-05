@@ -5,6 +5,7 @@ const swaggerUI = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const dotenv = require('dotenv');
 const userRoutes = require('./router/authRoutes');
+const rideRoutes = require('./router/rideRoutes');
 dotenv.config();
 
 
@@ -26,7 +27,17 @@ const swaggerOptions = {
         },
         servers: [
             { url: 'http://localhost:3000' }
-        ]
+        ],
+        components: {
+            securitySchemes: {
+              BearerAuth: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT",
+              },
+            },
+        },
+        security: [{ BearerAuth: [] }],
     },
     apis: ['./src/router/*.js']
 };
@@ -35,6 +46,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
 // Register routes
 app.use('/api', userRoutes);
+app.use('/rideApi' , rideRoutes )
 
 
 module.exports = app;

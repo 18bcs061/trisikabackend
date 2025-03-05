@@ -1,17 +1,22 @@
-const jwt = require('jwt-simple');
-const { JWT_SECRET } = process.env;
+const jwt = require("jwt-simple");
 
 const authMiddleware = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Assuming Bearer token
-    if (!token) return res.status(401).json({ error: 'No token provided' });
+  const token = req.headers["authorization"]?.split(" ")[1];
+  console.log("token" ,token , process.env.JWT_SECRET);
+  
+  if (!token) {
+    return res.status(401).json({ error: "No token provided" });
+  }
 
-    try {
-        const decoded = jwt.decode(token, JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (err) {
-        res.status(401).json({ error: 'Invalid or expired token' });
-    }
+  try {
+    const decoded = jwt.decode(token, process.env.JWT_SECRET);
+    console.log("value of decode" ,decoded);
+    
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
 };
 
 module.exports = authMiddleware;
