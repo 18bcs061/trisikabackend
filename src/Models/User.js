@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['rider', 'user', 'admin'], default: 'user' },
   active: { type: Boolean, default: true },
   fcmToken: { type: String },
+  currentLatitude: { type: Number, default: null },
+  currentLongitude: { type: Number, default: null },
   isPhoneVerified: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
