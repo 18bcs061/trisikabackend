@@ -5,7 +5,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 /**
  * @swagger
- * /rideApi/book:
+ * /ride/book:
  *   post:
  *     summary: Book a new ride
  *     tags: [Book Ride]

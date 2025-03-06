@@ -3,9 +3,8 @@ const Ride = require("../Models/Ride");
 const bookRideService = async (req, res) => {
   try {
     const { pickupLat, pickupLong, dropLat, dropLong, vehicleType , distance , rideTime , fare } = req.body;
-    console.log("req.user.userId" ,req.user);
     
-    const userId = req.user.userId; // Extract user ID from token
+    const userId = req.user.userId;
 
     if (!pickupLat || !pickupLong || !dropLat || !dropLong || !vehicleType) {
       return res.status(400).json({ error: "All fields are required" });

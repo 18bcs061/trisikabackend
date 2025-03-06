@@ -6,6 +6,7 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const dotenv = require('dotenv');
 const userRoutes = require('./router/authRoutes');
 const rideRoutes = require('./router/rideRoutes');
+const locationRoutes = require('./router/locationRoutes')
 dotenv.config();
 
 
@@ -46,7 +47,8 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 
 // Register routes
 app.use('/api', userRoutes);
-app.use('/rideApi' , rideRoutes )
+app.use('/ride' , rideRoutes )
+app.use('/locations' , locationRoutes )
 
 
 module.exports = app;

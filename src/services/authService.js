@@ -58,7 +58,6 @@ const requestUserLoginOTPService = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
     const user = await User.findOne({ phoneNumber });
-    console.log("value of user" ,user , "phoneNumber" ,phoneNumber);
     
     if (!user) {
       return res.status(404).json({ error: 'No account found please register first' });
@@ -228,45 +227,6 @@ const verifyDriverLoginOTPService = async (req, res) => {
   }
 };
 
-const updateDriverLocationService = async (req, res) => {
-  try {
-    const { currentLatitude, currentLongitude } = req.body;
-   
-    
-    const driverId = req.user.driverId; // Extract driver ID from JWT token
-    console.log("value of driverId" ,driverId);
-
-    if (currentLatitude == null || currentLongitude == null) {
-      return res.status(400).json({ error: "currentLatitude and currentLongitude are required" });
-    }
-
-    const driver = await Driver.findByIdAndUpdate(
-      driverId,
-      { currentLatitude, currentLongitude, updatedAt: Date.now() },
-      { new: true }
-    );
-    console.log("driver",driver);
-    
-
-    if (!driver) {
-      return res.status(404).json({ error: "Driver not found" });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Driver location updated successfully",
-      driver: {
-        _id: driver._id,
-        currentLatitude: driver.currentLatitude,
-        currentLongitude: driver.currentLongitude,
-        updatedAt: driver.updatedAt
-      }
-    });
-  } catch (error) {
-    console.error("Error updating driver location:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
 
 
 
@@ -278,4 +238,3 @@ exports.requestDriverRegistrationOTPService = requestDriverRegistrationOTPServic
 exports.verifyDriverRegistrationOTPService = verifyDriverRegistrationOTPService
 exports.requestDriverLoginOTPService = requestDriverLoginOTPService
 exports.verifyDriverLoginOTPService = verifyDriverLoginOTPService
-exports.updateDriverLocationService = updateDriverLocationService

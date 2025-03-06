@@ -1,5 +1,4 @@
 const OTPModel = require('../Models/OTP');
-const crypto = require('crypto');
 require('dotenv').config();
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -12,11 +11,9 @@ const sendSMS = async (number , body) => {
     to: number,
     body
   };
-  console.log("msgOptions" ,msgOptions);
   
   try{
     const message = await client.messages.create(msgOptions)
-    console.log("message" ,message);
     
   } catch (err) {
     console.log(err);
