@@ -15,11 +15,11 @@ const authController = require('../controllers/authController');
 
 /**
  * @swagger
- * /api/auth/user/register:
+ * /api/auth/user/register/generateOTP:
  *   post:
  *     summary: Request OTP for User Registration
  *     tags: [UserAuth]
- *     description: User provides phoneNumber + other user fields. Server generates/sends OTP. User is not yet stored in DB.
+ *     description: User provides phoneNumber. Server generates/sends OTP. User is not yet stored in DB.
  *     requestBody:
  *       required: true
  *       content:
@@ -30,39 +30,21 @@ const authController = require('../controllers/authController');
  *               phoneNumber:
  *                 type: string
  *                 example: "1234567890"
- *               name:
- *                 type: string
- *                 example: "John Doe"
- *               email:
- *                 type: string
- *                 example: "john@example.com"
- *               password:
- *                 type: string
- *                 example: "mypassword" 
- *               role:
- *                 type: string
- *                 example: "user"
- *               active:
- *                 type: boolean
- *                 example: true
- *               fcmToken:
- *                 type: string
- *                 example: "some_fcm_token"
  *     responses:
  *       200:
  *         description: OTP sent for User registration
  *       500:
  *         description: Internal server error
  */
-router.post('/auth/user/register', authController.requestUserRegistrationOTP);
+router.post('/auth/user/register/generateOTP', authController.requestUserRegistrationOTP);
 
 /**
  * @swagger
- * /api/auth/user/register/verify:
+ * /api/auth/user/register/verifyOTP:
  *   post:
- *     summary: Verify OTP & Create User
+ *     summary: Verify OTP & return user Id
  *     tags: [UserAuth]
- *     description: User provides phoneNumber + OTP. If valid, user is created in the DB with the previously supplied fields.
+ *     description: User provides phoneNumber + OTP. If valid, it will return the user Id.
  *     requestBody:
  *       required: true
  *       content:
@@ -76,14 +58,52 @@ router.post('/auth/user/register', authController.requestUserRegistrationOTP);
  *               otp:
  *                 type: string
  *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: User verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                      id:
+ *                       type: string
+ *       400:
+ *         description: Invalid or expired OTP
+ *       409:
+ *         description: User already exists
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/auth/user/register/verifyOTP', authController.verifyUserRegistrationOTP);
+
+
+/**
+ * @swagger
+ * /api/auth/user/register/createUser:
+ *   post:
+ *     summary: Request to create User
+ *     tags: [UserAuth]
+ *     description: User provides id and other fields. Server create user in db.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 example: "userId"
  *               name:
  *                 type: string
  *                 example: "John Doe"
  *               email:
  *                 type: string
  *                 example: "john@example.com"
- *               password:
- *                 type: string
  *               role:
  *                 type: string
  *                 example: "user"
@@ -96,14 +116,10 @@ router.post('/auth/user/register', authController.requestUserRegistrationOTP);
  *     responses:
  *       201:
  *         description: User registered successfully
- *       400:
- *         description: Invalid or expired OTP
- *       409:
- *         description: User already exists
  *       500:
  *         description: Internal server error
  */
-router.post('/auth/user/register/verify', authController.verifyUserRegistrationOTP);
+router.post('/auth/user/register/createUser', authController.requestUserRegistration);
 
 /*=======================  USER LOGIN  =======================*/
 

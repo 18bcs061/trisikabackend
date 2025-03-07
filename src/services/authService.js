@@ -2,6 +2,7 @@ const { generateOTP, verifyOTP } = require('./otpService');
 const User = require('../Models/User');
 const Driver = require('../Models/Driver');
 const jwt = require('jwt-simple');
+const mongoose = require('mongoose');
 
 /*==================================
   USER REGISTRATION FLOW
@@ -23,7 +24,7 @@ const requestUserRegistrationOTPService = async (req, res) => {
 
 const verifyUserRegistrationOTPService = async (req, res) => {
   try {
-    const { phoneNumber, otp, name, email, password, role, active, fcmToken } = req.body;
+    const { phoneNumber, otp } = req.body;
     const isValid = await verifyOTP(phoneNumber, otp);
     if (!isValid) {
       return res.status(400).json({ error: 'Invalid or expired OTP' });
@@ -33,18 +34,46 @@ const verifyUserRegistrationOTPService = async (req, res) => {
       return res.status(409).json({ error: 'User already exists' });
     }
     const newUser = new User({
-      phoneNumber,
-      name,
-      email,
-      password,
-      role: role || 'user',
-      fcmToken,
-      active,
-      isPhoneVerified: true,
-      fcmToken
+      phoneNumber
     });
     await newUser.save();
+    // return res.status(201).json({ userId: newUser._id });
+     return res.status(200).json({
+          success: true,
+          message: "User verified successfully",
+          User: {
+            _id: newUser._id,
+          }
+        });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const userRegistrationService = async (req, res) => {
+  try {
+    const { id , name, email, role, active, fcmToken } = req.body;
+    const existingUser = await User.findById(new mongoose.Types.ObjectId(id));
+    if (existingUser) {
+
+      await User.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(id),
+        {
+          name,
+          email,
+          role: role || 'user',
+          fcmToken,
+          active,
+          isPhoneVerified: true
+        },
+        { new: true, upsert: false }
+      );
     return res.status(201).json({ message: 'User registered successfully' });
+  }
+  else{
+    return res.status(409).json({ error: 'Please register with mobile number' });
+  }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -238,3 +267,4 @@ exports.requestDriverRegistrationOTPService = requestDriverRegistrationOTPServic
 exports.verifyDriverRegistrationOTPService = verifyDriverRegistrationOTPService
 exports.requestDriverLoginOTPService = requestDriverLoginOTPService
 exports.verifyDriverLoginOTPService = verifyDriverLoginOTPService
+exports.userRegistrationService = userRegistrationService

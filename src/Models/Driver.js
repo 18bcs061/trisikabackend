@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 
 const driverSchema = new mongoose.Schema({
   phoneNumber: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  email: { type: String, required: true },
+  name: { type: String},
+  email: { type: String},
   licenseNumber: { type: String },
   vehicleDetails: { type: String },
   kycStatus: { type: String, default: "Pending" },

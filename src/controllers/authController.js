@@ -1,6 +1,7 @@
 const {
   requestUserRegistrationOTPService,
   verifyUserRegistrationOTPService,
+  userRegistrationService,
   requestUserLoginOTPService,
   verifyUserLoginOTPService,
   requestDriverRegistrationOTPService,
@@ -18,7 +19,9 @@ exports.requestUserRegistrationOTP = async (req, res) => {
 exports.verifyUserRegistrationOTP = async (req, res) => {
   await verifyUserRegistrationOTPService(req, res);
 };
-
+exports.requestUserRegistration = async (req , res) => {
+  await userRegistrationService(req, res);
+}
 /*==================================
   USER LOGIN FLOW
 ==================================*/

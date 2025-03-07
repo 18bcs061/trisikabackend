@@ -21,7 +21,8 @@ const sendSMS = async (number , body) => {
 }
 
 async function generateOTP(phoneNumber) {
-  const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
+  // const otp = (Math.floor(100000 + Math.random() * 900000)).toString();
+  const otp = '123456';
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
   await OTPModel.create({ phoneNumber, otp, expiresAt });
   await sendSMS(phoneNumber, `Your OTP is ${otp}, valid for 5 minutes`);
