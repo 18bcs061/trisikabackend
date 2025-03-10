@@ -208,11 +208,11 @@ router.post('/auth/user/login/verify', authController.verifyUserLoginOTP);
 
 /**
  * @swagger
- * /api/auth/driver/register:
+ * /api/auth/driver/register/generateOTP:
  *   post:
  *     summary: Request OTP for Driver Registration
  *     tags: [DriverAuth]
- *     description: Driver provides phoneNumber + driver details. Server sends OTP. Not yet in DB.
+ *     description: Driver provides phoneNumber. Server generates/sends OTP. Driver is not yet stored in DB.
  *     requestBody:
  *       required: true
  *       content:
@@ -223,6 +223,73 @@ router.post('/auth/user/login/verify', authController.verifyUserLoginOTP);
  *               phoneNumber:
  *                 type: string
  *                 example: "9876543210"
+ *     responses:
+ *       200:
+ *         description: OTP sent for Driver registration
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/auth/driver/register/generateOTP', authController.requestDriverRegistrationOTP);
+
+/**
+ * @swagger
+ * /api/auth/driver/register/verifyOTP:
+ *   post:
+ *     summary: Verify OTP & return driver Id
+ *     tags: [DriverAuth]
+ *     description: Driver provides phoneNumber + OTP. If valid, it will return the driver Id.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phoneNumber:
+ *                 type: string
+ *                 example: "9876543210"
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Driver verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 driver:
+ *                   type: object
+ *                   properties:
+ *                      id:
+ *                       type: string
+ *       400:
+ *         description: Invalid or expired OTP
+ *       409:
+ *         description: Driver already exists
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/auth/driver/register/verifyOTP', authController.verifyDriverRegistrationOTP);
+
+/**
+ * @swagger
+ * /api/auth/driver/register/createDriver:
+ *   post:
+ *     summary: Request to create Driver
+ *     tags: [DriverAuth]
+ *     description: Driver provides id and other fields. Server create driver in db.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 example: "driverId"
  *               name:
  *                 type: string
  *                 example: "Jane Driver"
@@ -259,85 +326,16 @@ router.post('/auth/user/login/verify', authController.verifyUserLoginOTP);
  *               active:
  *                 type: boolean
  *                 example: true
- *               role:
- *                 type: string
- *                 example: "rider"
- *               acceptingRides:
- *                 type: boolean
- *                 example: false
  *               fcmToken:
  *                 type: string
  *                 example: "driver_fcm_token"
  *     responses:
  *       200:
- *         description: OTP sent for Driver registration
- *       500:
- *         description: Internal server error
- */
-router.post('/auth/driver/register', authController.requestDriverRegistrationOTP);
-
-/**
- * @swagger
- * /api/auth/driver/register/verify:
- *   post:
- *     summary: Verify OTP & Create Driver
- *     tags: [DriverAuth]
- *     description: Driver provides phoneNumber + OTP. If valid, create driver record in DB.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               phoneNumber:
- *                 type: string
- *                 example: "9876543210"
- *               otp:
- *                 type: string
- *                 example: "123456"
- *               name:
- *                 type: string
- *               email:
- *                 type: string
- *               licenseNumber:
- *                 type: string
- *               vehicleDetails:
- *                 type: string
- *               kycStatus:
- *                 type: string
- *               addressLine1:
- *                 type: string
- *               addressLine2:
- *                 type: string
- *               city:
- *                 type: string
- *               state:
- *                 type: string
- *               country:
- *                 type: string
- *               zipCode:
- *                 type: string
- *               active:
- *                 type: boolean
- *               role:
- *                 type: string
- *                 example: "rider"
- *               acceptingRides:
- *                 type: boolean
- *               fcmToken:
- *                 type: string
- *     responses:
- *       201:
  *         description: Driver registered successfully
- *       400:
- *         description: Invalid or expired OTP
- *       409:
- *         description: Driver already exists
  *       500:
  *         description: Internal server error
  */
-router.post('/auth/driver/register/verify', authController.verifyDriverRegistrationOTP);
+router.post('/auth/driver/register/createDriver', authController.requestDriverRegistration);
 
 /*=======================  DRIVER LOGIN =======================*/
 

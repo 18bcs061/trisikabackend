@@ -1,8 +1,8 @@
-const { generateOTP, verifyOTP } = require('./otpService');
-const User = require('../Models/User');
-const Driver = require('../Models/Driver');
-const jwt = require('jwt-simple');
-const mongoose = require('mongoose');
+const { generateOTP, verifyOTP } = require("./otpService");
+const User = require("../Models/User");
+const Driver = require("../Models/Driver");
+const jwt = require("jwt-simple");
+const mongoose = require("mongoose");
 
 /*==================================
   USER REGISTRATION FLOW
@@ -12,13 +12,13 @@ const requestUserRegistrationOTPService = async (req, res) => {
     const { phoneNumber } = req.body;
     const existingUser = await User.findOne({ phoneNumber });
     if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({ error: "User already exists" });
     }
     await generateOTP(phoneNumber);
-    return res.status(200).json({ message: 'OTP sent for User registration' });
+    return res.status(200).json({ message: "OTP sent for User registration" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -27,56 +27,55 @@ const verifyUserRegistrationOTPService = async (req, res) => {
     const { phoneNumber, otp } = req.body;
     const isValid = await verifyOTP(phoneNumber, otp);
     if (!isValid) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
+      return res.status(400).json({ error: "Invalid or expired OTP" });
     }
     const existingUser = await User.findOne({ phoneNumber });
     if (existingUser) {
-      return res.status(409).json({ error: 'User already exists' });
+      return res.status(409).json({ error: "User already exists" });
     }
     const newUser = new User({
-      phoneNumber
+      phoneNumber,
     });
     await newUser.save();
-    // return res.status(201).json({ userId: newUser._id });
-     return res.status(200).json({
-          success: true,
-          message: "User verified successfully",
-          User: {
-            _id: newUser._id,
-          }
-        });
+    return res.status(200).json({
+      success: true,
+      message: "User verified successfully",
+      User: {
+        _id: newUser._id,
+      },
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const userRegistrationService = async (req, res) => {
   try {
-    const { id , name, email, role, active, fcmToken } = req.body;
+    const { id, name, email, role, active, fcmToken } = req.body;
     const existingUser = await User.findById(new mongoose.Types.ObjectId(id));
     if (existingUser) {
-
       await User.findByIdAndUpdate(
         new mongoose.Types.ObjectId(id),
         {
           name,
           email,
-          role: role || 'user',
+          role: role || "user",
           fcmToken,
           active,
-          isPhoneVerified: true
+          isPhoneVerified: true,
         },
         { new: true, upsert: false }
       );
-    return res.status(201).json({ message: 'User registered successfully' });
-  }
-  else{
-    return res.status(409).json({ error: 'Please register with mobile number' });
-  }
+      return res.status(201).json({ message: "User registered successfully" });
+    } else {
+      return res
+        .status(409)
+        .json({ error: "Please register with mobile number" });
+    }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -87,15 +86,17 @@ const requestUserLoginOTPService = async (req, res) => {
   try {
     const { phoneNumber } = req.body;
     const user = await User.findOne({ phoneNumber });
-    
+
     if (!user) {
-      return res.status(404).json({ error: 'No account found please register first' });
+      return res
+        .status(404)
+        .json({ error: "No account found please register first" });
     }
     await generateOTP(phoneNumber);
-    return res.status(200).json({ message: 'OTP sent for User login' });
+    return res.status(200).json({ message: "OTP sent for User login" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -104,17 +105,19 @@ const verifyUserLoginOTPService = async (req, res) => {
     const { phoneNumber, otp } = req.body;
     const isValid = await verifyOTP(phoneNumber, otp);
     if (!isValid) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
+      return res.status(400).json({ error: "Invalid or expired OTP" });
     }
     const user = await User.findOne({ phoneNumber });
     if (!user) {
-      return res.status(404).json({ error: 'No account found please register first' });
+      return res
+        .status(404)
+        .json({ error: "No account found please register first" });
     }
-    const payload = { userId: user._id, role: user.role || 'rider' };
+    const payload = { userId: user._id, role: user.role || "rider" };
     const token = jwt.encode(payload, process.env.JWT_SECRET);
 
     return res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       token,
       user: {
         _id: user._id,
@@ -122,12 +125,12 @@ const verifyUserLoginOTPService = async (req, res) => {
         phoneNumber: user.phoneNumber,
         email: user.email,
         role: user.role,
-        active: user.active
-      }
+        active: user.active,
+      },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -139,21 +142,51 @@ const requestDriverRegistrationOTPService = async (req, res) => {
     const { phoneNumber } = req.body;
     const existingDriver = await Driver.findOne({ phoneNumber });
     if (existingDriver) {
-      return res.status(409).json({ error: 'Driver already exists' });
+      return res.status(409).json({ error: "Driver already exists" });
     }
     await generateOTP(phoneNumber);
-    return res.status(200).json({ message: 'OTP sent for Driver registration' });
+    return res
+      .status(200)
+      .json({ message: "OTP sent for Driver registration" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const verifyDriverRegistrationOTPService = async (req, res) => {
   try {
-    const {
+    const { phoneNumber, otp } = req.body;
+    const isValid = await verifyOTP(phoneNumber, otp);
+    if (!isValid) {
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+    const existingDriver = await Driver.findOne({ phoneNumber });
+    if (existingDriver) {
+      return res.status(409).json({ error: "Driver already exists" });
+    }
+    const newDriver = new Driver({
       phoneNumber,
-      otp,
+    });
+    await newDriver.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Driver verified successfully",
+      driver: {
+        _id: newDriver._id,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const driverRegistrationService = async (req, res) => {
+  try {
+    const {
+      id,
       name,
       email,
       licenseNumber,
@@ -166,44 +199,46 @@ const verifyDriverRegistrationOTPService = async (req, res) => {
       country,
       zipCode,
       active,
-      role,
-      acceptingRides,
       fcmToken,
     } = req.body;
 
-    const isValid = await verifyOTP(phoneNumber, otp);
-    if (!isValid) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
-    }
-    const existingDriver = await Driver.findOne({ phoneNumber });
+    const existingDriver = await Driver.findById(
+      new mongoose.Types.ObjectId(id)
+    );
     if (existingDriver) {
-      return res.status(409).json({ error: 'Driver already exists' });
+      await Driver.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(id),
+        {
+          name,
+          email,
+          licenseNumber,
+          vehicleDetails,
+          kycStatus: kycStatus || "Pending",
+          addressLine1,
+          addressLine2,
+          city,
+          state,
+          country,
+          zipCode,
+          active: active !== undefined ? active : true,
+          role: "driver",
+          acceptingRides: false,
+          fcmToken,
+          isPhoneVerified: true,
+        },
+        { new: true, upsert: false }
+      );
+      return res
+        .status(201)
+        .json({ message: "Driver registered successfully" });
+    } else {
+      return res
+        .status(409)
+        .json({ error: "Please register with mobile number" });
     }
-    const newDriver = new Driver({
-      phoneNumber,
-      name,
-      email,
-      licenseNumber,
-      vehicleDetails,
-      kycStatus: kycStatus || 'Pending',
-      addressLine1,
-      addressLine2,
-      city,
-      state,
-      country,
-      zipCode,
-      active: active !== undefined ? active : true,
-      role:role,
-      acceptingRides: acceptingRides || false,
-      fcmToken,
-      isPhoneVerified: true,
-    });
-    await newDriver.save();
-
-    return res.status(201).json({ message: 'Driver registered successfully' });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -215,13 +250,15 @@ const requestDriverLoginOTPService = async (req, res) => {
     const { phoneNumber } = req.body;
     const driver = await Driver.findOne({ phoneNumber });
     if (!driver) {
-      return res.status(404).json({ error: 'No account found please register first' });
+      return res
+        .status(404)
+        .json({ error: "No account found please register first" });
     }
     await generateOTP(phoneNumber);
-    return res.status(200).json({ message: 'OTP sent for Driver login' });
+    return res.status(200).json({ message: "OTP sent for Driver login" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -230,41 +267,42 @@ const verifyDriverLoginOTPService = async (req, res) => {
     const { phoneNumber, otp } = req.body;
     const isValid = await verifyOTP(phoneNumber, otp);
     if (!isValid) {
-      return res.status(400).json({ error: 'Invalid or expired OTP' });
+      return res.status(400).json({ error: "Invalid or expired OTP" });
     }
     const driver = await Driver.findOne({ phoneNumber });
     if (!driver) {
-      return res.status(404).json({ error: 'No account found please register first' });
+      return res
+        .status(404)
+        .json({ error: "No account found please register first" });
     }
-    const payload = { driverId: driver._id, role: 'driver' };
+    const payload = { driverId: driver._id, role: "driver" };
     const token = jwt.encode(payload, process.env.JWT_SECRET);
     return res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       token,
       driver: {
         _id: driver._id,
         name: driver.name,
         phoneNumber: driver.phoneNumber,
         email: driver.email,
-        active:driver.active,
-        role:driver.role
-      }
+        active: driver.active,
+        role: driver.role,
+      },
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-
-
-
-exports.requestUserRegistrationOTPService = requestUserRegistrationOTPService
-exports.verifyUserRegistrationOTPService = verifyUserRegistrationOTPService
-exports.requestUserLoginOTPService = requestUserLoginOTPService
-exports.verifyUserLoginOTPService = verifyUserLoginOTPService
-exports.requestDriverRegistrationOTPService = requestDriverRegistrationOTPService
-exports.verifyDriverRegistrationOTPService = verifyDriverRegistrationOTPService
-exports.requestDriverLoginOTPService = requestDriverLoginOTPService
-exports.verifyDriverLoginOTPService = verifyDriverLoginOTPService
-exports.userRegistrationService = userRegistrationService
+exports.requestUserRegistrationOTPService = requestUserRegistrationOTPService;
+exports.verifyUserRegistrationOTPService = verifyUserRegistrationOTPService;
+exports.requestUserLoginOTPService = requestUserLoginOTPService;
+exports.verifyUserLoginOTPService = verifyUserLoginOTPService;
+exports.requestDriverRegistrationOTPService =
+  requestDriverRegistrationOTPService;
+exports.verifyDriverRegistrationOTPService = verifyDriverRegistrationOTPService;
+exports.requestDriverLoginOTPService = requestDriverLoginOTPService;
+exports.verifyDriverLoginOTPService = verifyDriverLoginOTPService;
+exports.userRegistrationService = userRegistrationService;
+exports.driverRegistrationService = driverRegistrationService;

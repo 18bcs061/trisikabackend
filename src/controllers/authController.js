@@ -7,7 +7,8 @@ const {
   requestDriverRegistrationOTPService,
   verifyDriverRegistrationOTPService,
   requestDriverLoginOTPService,
-  verifyDriverLoginOTPService
+  verifyDriverLoginOTPService,
+  driverRegistrationService
 } = require('../services/authService'); // Ensure this path is correct
 
 /*==================================
@@ -41,6 +42,9 @@ exports.requestDriverRegistrationOTP = async (req, res) => {
 exports.verifyDriverRegistrationOTP = async (req, res) => {
   await verifyDriverRegistrationOTPService(req, res);
 };
+exports.requestDriverRegistration = async (req , res) => {
+  await driverRegistrationService(req, res);
+}
 
 /*==================================
   DRIVER LOGIN FLOW
