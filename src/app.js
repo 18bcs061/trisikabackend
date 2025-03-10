@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const userRoutes = require('./router/authRoutes');
 const rideRoutes = require('./router/rideRoutes');
 const locationRoutes = require('./router/locationRoutes')
+const fcmRoutes = require("./router/fcmRoutes");
 dotenv.config();
 
 
@@ -49,6 +50,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(specs));
 app.use('/api', userRoutes);
 app.use('/ride' , rideRoutes )
 app.use('/locations' , locationRoutes )
+app.use('/token' , fcmRoutes)
 
 
 module.exports = app;

@@ -52,7 +52,7 @@ const verifyUserRegistrationOTPService = async (req, res) => {
 
 const userRegistrationService = async (req, res) => {
   try {
-    const { id, name, email, role, active, fcmToken } = req.body;
+    const { id, name, email, role, active } = req.body;
     const existingUser = await User.findById(new mongoose.Types.ObjectId(id));
     if (existingUser) {
       await User.findByIdAndUpdate(
@@ -61,7 +61,6 @@ const userRegistrationService = async (req, res) => {
           name,
           email,
           role: role || "user",
-          fcmToken,
           active,
           isPhoneVerified: true,
         },
@@ -198,8 +197,7 @@ const driverRegistrationService = async (req, res) => {
       state,
       country,
       zipCode,
-      active,
-      fcmToken,
+      active
     } = req.body;
 
     const existingDriver = await Driver.findById(
@@ -223,7 +221,6 @@ const driverRegistrationService = async (req, res) => {
           active: active !== undefined ? active : true,
           role: "driver",
           acceptingRides: false,
-          fcmToken,
           isPhoneVerified: true,
         },
         { new: true, upsert: false }

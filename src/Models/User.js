@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String },
   role: { type: String, enum: ['rider', 'user', 'admin'], default: 'user' },
   active: { type: Boolean, default: true },
-  fcmToken: { type: String },
+  fcmToken: { type: String , default: ''},
   currentLatitude: { type: Number, default: null },
   currentLongitude: { type: Number, default: null },
   isPhoneVerified: { type: Boolean, default: false },

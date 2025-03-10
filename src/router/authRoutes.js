@@ -110,9 +110,6 @@ router.post('/auth/user/register/verifyOTP', authController.verifyUserRegistrati
  *               active:
  *                 type: boolean
  *                 example: true
- *               fcmToken:
- *                 type: string
- *                 example: "some_fcm_token"
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -326,9 +323,6 @@ router.post('/auth/driver/register/verifyOTP', authController.verifyDriverRegist
  *               active:
  *                 type: boolean
  *                 example: true
- *               fcmToken:
- *                 type: string
- *                 example: "driver_fcm_token"
  *     responses:
  *       200:
  *         description: Driver registered successfully
