@@ -1,13 +1,38 @@
 const Ride = require("../Models/Ride");
 const Driver = require("../Models/Driver");
+const User = require("../Models/User"); 
+const axios = require("axios");
+const admin = require("firebase-admin");
+require("dotenv").config();
+
+const serviceAccount = {
+  type: process.env.FIREBASE_TYPE,
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_CLIENT_ID,
+  auth_uri: process.env.FIREBASE_AUTH_URI,
+  token_uri: process.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT,
+};
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 const bookRideService = async (req, res) => {
   try {
     const { pickupLat, pickupLong, dropLat, dropLong, vehicleType, distance, rideTime, fare } = req.body;
     const userId = req.user.userId;
-
+    
     if (!pickupLat || !pickupLong || !dropLat || !dropLong || !vehicleType) {
       return res.status(400).json({ error: "All fields are required" });
+    }
+
+    const user = await User.findById(userId).select("name");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Save ride details to MongoDB
@@ -29,6 +54,7 @@ const bookRideService = async (req, res) => {
     await newRide.save();
 
     const maxDistanceInMeters = 3000; // 3 km
+
     const availableDrivers = await Driver.find({
       active: true,
       currentLatitude: { $ne: null },
@@ -43,6 +69,19 @@ const bookRideService = async (req, res) => {
         }
       }
     }).select("name phoneNumber currentLatitude currentLongitude vehicleDetails fcmToken");
+    
+
+    if (availableDrivers.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No drivers available nearby",
+        ride: newRide,
+        availableDrivers: []
+      });
+    }
+    const pickupAddress = await getAddressFromLatLng(pickupLat, pickupLong);
+    const dropAddress = await getAddressFromLatLng(dropLat, dropLong);
+    await sendFCMNotifications(availableDrivers, user.name, pickupAddress, dropAddress);
 
     res.status(200).json({
       success: true,
@@ -54,6 +93,42 @@ const bookRideService = async (req, res) => {
   } catch (error) {
     console.error("Error booking ride:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getAddressFromLatLng = async (lat, lng) => {
+  try {
+    const response = await axios.get(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAP_API_KEY}`
+    );
+    return response.data.results[0]?.formatted_address || "Unknown Location";
+  } catch (error) {
+    console.error("Error fetching address:", error);
+    return "Unknown Location";
+  }
+};
+
+
+const sendFCMNotifications = async (drivers, userName, pickupAddress, dropAddress) => {
+  const messages = drivers.map(driver => ({
+    token: driver.fcmToken,
+    notification: {
+      title: "New Ride Request 🚖",
+      body: `${userName} needs a ride from ${pickupAddress} to ${dropAddress}. Tap to accept.`
+    },
+    data: {
+      userName,
+      pickupAddress,
+      dropAddress,
+      rideType: "New Request"
+    }
+  }));
+
+  try {
+    await admin.messaging().sendEach(messages);
+    console.log("Notifications sent to available drivers.");
+  } catch (error) {
+    console.error("Error sending FCM notifications:", error);
   }
 };
 
