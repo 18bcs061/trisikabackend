@@ -1,9 +1,9 @@
 const Ride = require("../Models/Ride");
+const Driver = require("../Models/Driver");
 
 const bookRideService = async (req, res) => {
   try {
-    const { pickupLat, pickupLong, dropLat, dropLong, vehicleType , distance , rideTime , fare } = req.body;
-    
+    const { pickupLat, pickupLong, dropLat, dropLong, vehicleType, distance, rideTime, fare } = req.body;
     const userId = req.user.userId;
 
     if (!pickupLat || !pickupLong || !dropLat || !dropLong || !vehicleType) {
@@ -28,10 +28,27 @@ const bookRideService = async (req, res) => {
 
     await newRide.save();
 
+    const maxDistanceInMeters = 3000; // 3 km
+    const availableDrivers = await Driver.find({
+      active: true,
+      currentLatitude: { $ne: null },
+      currentLongitude: { $ne: null },
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [pickupLong, pickupLat] 
+          },
+          $maxDistance: maxDistanceInMeters
+        }
+      }
+    }).select("name phoneNumber currentLatitude currentLongitude vehicleDetails fcmToken");
+
     res.status(200).json({
       success: true,
       message: "waiting for the driver to accept",
-      ride: newRide
+      ride: newRide,
+      availableDrivers
     });
 
   } catch (error) {
@@ -40,4 +57,4 @@ const bookRideService = async (req, res) => {
   }
 };
 
-exports.bookRideService = bookRideService
+exports.bookRideService = bookRideService;

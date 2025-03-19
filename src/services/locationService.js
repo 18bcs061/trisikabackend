@@ -5,8 +5,6 @@ const User = require('../Models/User');
 const updateDriverLocationService = async (req, res) => {
   try {
     const { currentLatitude, currentLongitude } = req.body;
-   
-    
     const driverId = req.user.driverId;
 
     if (currentLatitude == null || currentLongitude == null) {
@@ -15,10 +13,17 @@ const updateDriverLocationService = async (req, res) => {
 
     const driver = await Driver.findByIdAndUpdate(
       driverId,
-      { currentLatitude, currentLongitude, updatedAt: Date.now() },
+      {
+        currentLatitude,
+        currentLongitude,
+        location: {
+          type: "Point",
+          coordinates: [currentLongitude, currentLatitude]
+        },
+        updatedAt: Date.now()
+      },
       { new: true }
     );
-    
 
     if (!driver) {
       return res.status(404).json({ error: "Driver not found" });
@@ -39,6 +44,7 @@ const updateDriverLocationService = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const updateUserLocationService = async (req, res) => {
   try {
