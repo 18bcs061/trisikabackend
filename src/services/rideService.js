@@ -5,6 +5,10 @@ const axios = require("axios");
 const admin = require("firebase-admin");
 require("dotenv").config();
 
+const BASE_FARE = 40;
+const PER_KM_RATE = 12;
+const PER_MINUTE_RATE = 2; 
+
 const serviceAccount = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,
@@ -53,7 +57,7 @@ const bookRideService = async (req, res) => {
 
     await newRide.save();
 
-    const maxDistanceInMeters = 3000; // 3 km
+    const maxDistanceInMeters = 3000;
 
     const availableDrivers = await Driver.find({
       active: true,
@@ -101,6 +105,7 @@ const getAddressFromLatLng = async (lat, lng) => {
     const response = await axios.get(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAP_API_KEY}`
     );
+    
     return response.data.results[0]?.formatted_address || "Unknown Location";
   } catch (error) {
     console.error("Error fetching address:", error);
@@ -132,4 +137,48 @@ const sendFCMNotifications = async (drivers, userName, pickupAddress, dropAddres
   }
 };
 
+const calculateFareService = async (req, res) => {
+  try {
+    const { pickupLat, pickupLong, dropLat, dropLong } = req.body;
+
+    if (!pickupLat || !pickupLong || !dropLat || !dropLong) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Ensure user is authenticated
+    const userId = req.user.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const googleMapsUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${pickupLat},${pickupLong}&destinations=${dropLat},${dropLong}&key=${process.env.GOOGLE_MAP_API_KEY}`;
+    
+    const response = await axios.get(googleMapsUrl);
+    const data = response.data;
+
+    if (data.status !== "OK") {
+      return res.status(500).json({ error: "Failed to fetch distance and time from Google Maps API" });
+    }
+
+    const distanceMeters = data.rows[0].elements[0].distance.value;
+    const distanceKm = distanceMeters / 1000;
+    const durationSeconds = data.rows[0].elements[0].duration.value;
+    const durationMinutes = durationSeconds / 60;
+
+
+    const fare = BASE_FARE + (distanceKm * PER_KM_RATE) + (durationMinutes * PER_MINUTE_RATE);
+
+    res.status(200).json({
+      fare: parseFloat(fare.toFixed(2)),
+      distance: parseFloat(distanceKm.toFixed(2)),
+      estimatedTime: parseFloat(durationMinutes.toFixed(2))
+    });
+
+  } catch (error) {
+    console.error("Error calculating fare:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 exports.bookRideService = bookRideService;
+exports.calculateFareService = calculateFareService;

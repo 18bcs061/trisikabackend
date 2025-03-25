@@ -76,4 +76,56 @@ const authMiddleware = require("../Middleware/authMiddleware");
  */
 router.post("/book", authMiddleware, rideController.bookRide);
 
+/**
+ * @swagger
+ * /ride/calculate-fare:
+ *   post:
+ *     summary: Calculate ride fare based on traffic and distance (for Trisikad only)
+ *     tags: [Calculate Fare]
+ *     description: Returns the estimated fare, distance, and time for a ride
+ *     security:
+ *       - BearerAuth: []  
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pickupLat:
+ *                 type: number
+ *                 example: 28.7041
+ *               pickupLong:
+ *                 type: number
+ *                 example: 77.1025
+ *               dropLat:
+ *                 type: number
+ *                 example: 28.4595
+ *               dropLong:
+ *                 type: number
+ *                 example: 77.0266
+ *     responses:
+ *       200:
+ *         description: Fare calculation successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fare:
+ *                   type: number
+ *                 distance:
+ *                   type: number
+ *                 estimatedTime:
+ *                   type: number
+ *       400:
+ *         description: Missing required fields
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error
+ */
+router.post("/calculate-fare", authMiddleware, rideController.calculateFare);
+
+
 module.exports = router;
