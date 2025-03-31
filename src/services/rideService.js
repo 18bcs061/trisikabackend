@@ -29,7 +29,7 @@ const bookRideService = async (req, res) => {
   try {
     const { pickupLat, pickupLong, dropLat, dropLong, vehicleType, distance, rideTime, fare } = req.body;
     const userId = req.user.userId;
-    
+
     if (!pickupLat || !pickupLong || !dropLat || !dropLong || !vehicleType) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -57,23 +57,31 @@ const bookRideService = async (req, res) => {
 
     await newRide.save();
 
-    const maxDistanceInMeters = 3000;
+    // Search for drivers in increasing radius: 1 km → 2 km → 3 km
+    const searchDistances = [1000, 2000, 3000];
+    let availableDrivers = [];
 
-    const availableDrivers = await Driver.find({
-      active: true,
-      currentLatitude: { $ne: null },
-      currentLongitude: { $ne: null },
-      location: {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: [pickupLong, pickupLat] 
-          },
-          $maxDistance: maxDistanceInMeters
+    for (const maxDistance of searchDistances) {
+      availableDrivers = await Driver.find({
+        active: true,
+        acceptingRides:true,
+        currentLatitude: { $ne: null },
+        currentLongitude: { $ne: null },
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: [pickupLong, pickupLat]
+            },
+            $maxDistance: maxDistance
+          }
         }
+      }).select("name phoneNumber currentLatitude currentLongitude vehicleDetails fcmToken");
+
+      if (availableDrivers.length > 0) {
+        break; // Stop searching once drivers are found
       }
-    }).select("name phoneNumber currentLatitude currentLongitude vehicleDetails fcmToken");
-    
+    }
 
     if (availableDrivers.length === 0) {
       return res.status(200).json({
@@ -83,13 +91,17 @@ const bookRideService = async (req, res) => {
         availableDrivers: []
       });
     }
+
+    // Get pickup & drop addresses
     const pickupAddress = await getAddressFromLatLng(pickupLat, pickupLong);
     const dropAddress = await getAddressFromLatLng(dropLat, dropLong);
+
+    // Notify available drivers
     await sendFCMNotifications(availableDrivers, user.name, pickupAddress, dropAddress);
 
     res.status(200).json({
       success: true,
-      message: "waiting for the driver to accept",
+      message: "Waiting for the driver to accept",
       ride: newRide,
       availableDrivers
     });
@@ -105,7 +117,7 @@ const getAddressFromLatLng = async (lat, lng) => {
     const response = await axios.get(
       `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.GOOGLE_MAP_API_KEY}`
     );
-    
+     
     return response.data.results[0]?.formatted_address || "Unknown Location";
   } catch (error) {
     console.error("Error fetching address:", error);

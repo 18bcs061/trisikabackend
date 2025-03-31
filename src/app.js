@@ -8,6 +8,7 @@ const userRoutes = require('./router/authRoutes');
 const rideRoutes = require('./router/rideRoutes');
 const locationRoutes = require('./router/locationRoutes')
 const fcmRoutes = require("./router/fcmRoutes");
+const driverStatusRoutes = require("./router/driverStatusRoutes");
 dotenv.config();
 
 
@@ -51,6 +52,7 @@ app.use('/api', userRoutes);
 app.use('/ride' , rideRoutes )
 app.use('/locations' , locationRoutes )
 app.use('/token' , fcmRoutes)
+app.use('/driver' , driverStatusRoutes);
 
 
 module.exports = app;
